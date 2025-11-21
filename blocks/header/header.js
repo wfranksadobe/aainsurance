@@ -188,69 +188,41 @@ export default async function decorate(block) {
       // Skip if already wrapped in an anchor
       if (imageElement.closest('a')) return;
 
-      // Get the element to wrap (picture if exists, otherwise img)
-      const elementToWrap = imageElement.tagName === 'IMG' && imageElement.parentElement.tagName === 'PICTURE' 
-        ? imageElement.parentElement 
-        : imageElement;
-
       // Look for link in adjacent paragraph or div (Franklin structure)
-      const parent = elementToWrap.closest('p, div');
+      const parent = imageElement.closest('p, div');
       if (!parent) return;
 
+      // Check for a link that's a sibling or in a sibling element
       let linkElement = null;
       let linkHref = null;
 
       // Strategy 1: Check for data attribute on image or picture
-      const dataLink = elementToWrap.getAttribute('data-imagelink') || 
-                      imageElement.getAttribute('data-imagelink');
+      const dataLink = imageElement.getAttribute('data-imagelink') || 
+                      imageElement.parentElement?.getAttribute('data-imagelink');
       if (dataLink) {
         linkHref = dataLink;
       }
 
-      // Strategy 2: Look for anchor in sibling paragraph/div after image
+      // Strategy 2: Check for link in next sibling
       if (!linkHref) {
-        let sibling = parent.nextElementSibling;
-        while (sibling && !linkHref) {
-          // Check if sibling is a paragraph or div with only a link
-          const siblingLink = sibling.querySelector('a');
-          if (siblingLink && sibling.textContent.trim() === siblingLink.textContent.trim()) {
-            linkHref = siblingLink.getAttribute('href');
-            linkElement = sibling;
-            break;
+        const nextSibling = parent.nextElementSibling;
+        if (nextSibling) {
+          linkElement = nextSibling.querySelector('a');
+          if (linkElement) {
+            linkHref = linkElement.getAttribute('href');
+            // Remove the link element container after extracting href
+            nextSibling.remove();
           }
-          // Only check immediate next sibling for safety
-          break;
         }
       }
 
       // Strategy 3: Check for link within same parent but separate from image
-      if (!linkHref) {
-        const parentLinks = parent.querySelectorAll('a');
-        parentLinks.forEach((link) => {
-          // Only use it if it's not wrapping the image and is the only content besides the image
-          if (!link.contains(elementToWrap)) {
-            linkHref = link.getAttribute('href');
-            linkElement = link;
-          }
-        });
-      }
-
-      // Strategy 4: Check parent's parent for row-based structure (table-like blocks)
-      if (!linkHref && parent.parentElement) {
-        const rowParent = parent.parentElement;
-        // Check if this looks like a row with cells (common in Franklin blocks)
-        const cells = Array.from(rowParent.children);
-        const imageCell = cells.find((cell) => cell.contains(elementToWrap));
-        if (imageCell) {
-          const imageCellIndex = cells.indexOf(imageCell);
-          // Check next cell for link
-          if (cells[imageCellIndex + 1]) {
-            const nextCellLink = cells[imageCellIndex + 1].querySelector('a');
-            if (nextCellLink) {
-              linkHref = nextCellLink.getAttribute('href');
-              linkElement = cells[imageCellIndex + 1];
-            }
-          }
+      if (!linkHref && parent.querySelector('a')) {
+        linkElement = parent.querySelector('a');
+        // Only use it if it's not wrapping the image
+        if (!linkElement.contains(imageElement)) {
+          linkHref = linkElement.getAttribute('href');
+          linkElement.remove();
         }
       }
 
@@ -259,13 +231,13 @@ export default async function decorate(block) {
         const anchor = document.createElement('a');
         anchor.href = linkHref;
         
+        // Preserve the image element (picture or img)
+        const elementToWrap = imageElement.tagName === 'IMG' && imageElement.parentElement.tagName === 'PICTURE' 
+          ? imageElement.parentElement 
+          : imageElement;
+        
         elementToWrap.parentNode.insertBefore(anchor, elementToWrap);
         anchor.appendChild(elementToWrap);
-
-        // Remove the link element if it was extracted from elsewhere
-        if (linkElement && linkElement.parentNode) {
-          linkElement.remove();
-        }
       }
     });
   };
