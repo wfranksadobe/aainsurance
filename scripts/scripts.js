@@ -2,6 +2,7 @@ import {
   loadHeader,
   loadFooter,
   decorateButtons,
+  decorateImageLinks,
   decorateIcons,
   decorateSections,
   decorateBlocks,
@@ -85,6 +86,7 @@ function buildAutoBlocks() {
  */
 export function decorateMain(main) {
   decorateLinks(main);
+  decorateImageLinks(main);
   decorateButtons(main);
   decorateIcons(main);
   buildAutoBlocks(main);

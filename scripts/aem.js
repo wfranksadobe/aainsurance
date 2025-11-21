@@ -403,6 +403,85 @@ function wrapTextNodes(block) {
 }
 
 /**
+ * Decorates images with imageLink fields.
+ * In Franklin/AEM, when an image has an imageLink field populated,
+ * it renders as adjacent elements that need to be combined.
+ * @param {Element} element container element
+ */
+function decorateImageLinks(element) {
+  // Find all pictures/images that are not already wrapped in links
+  element.querySelectorAll('picture, img').forEach((imageElement) => {
+    // Skip if already wrapped in an anchor
+    if (imageElement.closest('a')) return;
+
+    // Get the element to wrap (picture if exists, otherwise img)
+    const elementToWrap = imageElement.tagName === 'IMG' && imageElement.parentElement?.tagName === 'PICTURE' 
+      ? imageElement.parentElement 
+      : imageElement;
+
+    const parent = elementToWrap.closest('p, div');
+    if (!parent) return;
+
+    let linkHref = null;
+    let linkElement = null;
+
+    // Strategy 1: Check for data attribute
+    const dataLink = elementToWrap.getAttribute('data-imagelink') || 
+                    imageElement.getAttribute('data-imagelink');
+    if (dataLink) {
+      linkHref = dataLink;
+    }
+
+    // Strategy 2: Check sibling paragraph/div for standalone link
+    if (!linkHref) {
+      const sibling = parent.nextElementSibling;
+      if (sibling) {
+        const siblingLink = sibling.querySelector('a');
+        // Only use if the sibling contains essentially just the link
+        if (siblingLink && sibling.textContent.trim() === siblingLink.textContent.trim()) {
+          linkHref = siblingLink.getAttribute('href');
+          linkElement = sibling;
+        }
+      }
+    }
+
+    // Strategy 3: Row-based structure (common in Franklin blocks)
+    if (!linkHref && parent.parentElement) {
+      const row = parent.parentElement;
+      const cells = Array.from(row.children);
+      const imageCell = cells.find((cell) => cell.contains(elementToWrap));
+      
+      if (imageCell && cells.length > 1) {
+        const imageCellIndex = cells.indexOf(imageCell);
+        // Check next cell for link
+        const nextCell = cells[imageCellIndex + 1];
+        if (nextCell) {
+          const nextCellLink = nextCell.querySelector('a');
+          if (nextCellLink && nextCell.textContent.trim() === nextCellLink.textContent.trim()) {
+            linkHref = nextCellLink.getAttribute('href');
+            linkElement = nextCell;
+          }
+        }
+      }
+    }
+
+    // If we found a link, wrap the image
+    if (linkHref) {
+      const anchor = document.createElement('a');
+      anchor.href = linkHref;
+      
+      elementToWrap.parentNode.insertBefore(anchor, elementToWrap);
+      anchor.appendChild(elementToWrap);
+
+      // Remove the source link element
+      if (linkElement?.parentNode) {
+        linkElement.remove();
+      }
+    }
+  });
+}
+
+/**
  * Decorates paragraphs containing a single link as buttons.
  * @param {Element} element container element
  */
@@ -695,6 +774,7 @@ export {
   decorateBlock,
   decorateBlocks,
   decorateButtons,
+  decorateImageLinks,
   decorateIcons,
   decorateSections,
   decorateTemplateAndTheme,
