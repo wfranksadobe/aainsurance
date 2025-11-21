@@ -468,8 +468,8 @@ export default async function decorate(block) {
   navWrapper.append(nav);
   block.append(navWrapper);
 
-  navWrapper.addEventListener('mouseout', (e) => {
-    if (isDesktop.matches && !nav.contains(e.relatedTarget)) {
+  navWrapper.addEventListener('mouseleave', (e) => {
+    if (isDesktop.matches) {
       toggleAllNavSections(navSections);
       overlay.classList.remove('show');
     }
