@@ -181,6 +181,72 @@ export default async function decorate(block) {
     brandLink.closest('.button-container').className = '';
   }
 
+  // Handle images with imageLink property
+  const wrapImageWithLink = (container) => {
+    // Find all pictures/images that are not already wrapped in a link
+    container.querySelectorAll('picture, img').forEach((imageElement) => {
+      // Skip if already wrapped in an anchor
+      if (imageElement.closest('a')) return;
+
+      // Look for link in adjacent paragraph or div (Franklin structure)
+      const parent = imageElement.closest('p, div');
+      if (!parent) return;
+
+      // Check for a link that's a sibling or in a sibling element
+      let linkElement = null;
+      let linkHref = null;
+
+      // Strategy 1: Check for data attribute on image or picture
+      const dataLink = imageElement.getAttribute('data-imagelink') || 
+                      imageElement.parentElement?.getAttribute('data-imagelink');
+      if (dataLink) {
+        linkHref = dataLink;
+      }
+
+      // Strategy 2: Check for link in next sibling
+      if (!linkHref) {
+        const nextSibling = parent.nextElementSibling;
+        if (nextSibling) {
+          linkElement = nextSibling.querySelector('a');
+          if (linkElement) {
+            linkHref = linkElement.getAttribute('href');
+            // Remove the link element container after extracting href
+            nextSibling.remove();
+          }
+        }
+      }
+
+      // Strategy 3: Check for link within same parent but separate from image
+      if (!linkHref && parent.querySelector('a')) {
+        linkElement = parent.querySelector('a');
+        // Only use it if it's not wrapping the image
+        if (!linkElement.contains(imageElement)) {
+          linkHref = linkElement.getAttribute('href');
+          linkElement.remove();
+        }
+      }
+
+      // If we found a link, wrap the image/picture with it
+      if (linkHref) {
+        const anchor = document.createElement('a');
+        anchor.href = linkHref;
+        
+        // Preserve the image element (picture or img)
+        const elementToWrap = imageElement.tagName === 'IMG' && imageElement.parentElement.tagName === 'PICTURE' 
+          ? imageElement.parentElement 
+          : imageElement;
+        
+        elementToWrap.parentNode.insertBefore(anchor, elementToWrap);
+        anchor.appendChild(elementToWrap);
+      }
+    });
+  };
+
+  // Apply to brand section
+  if (navBrand) {
+    wrapImageWithLink(navBrand);
+  }
+
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
     navSections
@@ -206,6 +272,9 @@ export default async function decorate(block) {
           }
         });
       });
+    
+    // Handle images with links in nav sections
+    wrapImageWithLink(navSections);
   }
 
   const navTools = nav.querySelector('.nav-tools');
