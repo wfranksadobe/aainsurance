@@ -179,10 +179,8 @@ export default async function decorate(block) {
   if (brandLink) {
     brandLink.className = '';
     brandLink.closest('.button-container').className = '';
-    // Ensure brand link points to homepage
-    brandLink.setAttribute('href', '/');
   } else {
-    // If there's no link but there's content (like an image), wrap it in a link
+    // If there's no button link but there's an image, wrap it in a link to homepage
     const brandContent = navBrand.querySelector('picture, img');
     if (brandContent && !brandContent.closest('a')) {
       const homeLink = document.createElement('a');
