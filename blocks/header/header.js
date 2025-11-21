@@ -271,6 +271,12 @@ export default async function decorate(block) {
             overlay.classList.add('show');
           }
         });
+        navSection.addEventListener('mouseleave', () => {
+          if (isDesktop.matches && navSection.classList.contains('nav-drop')) {
+            navSection.setAttribute('aria-expanded', 'false');
+            overlay.classList.remove('show');
+          }
+        });
       });
     
     // Handle images with links in nav sections
