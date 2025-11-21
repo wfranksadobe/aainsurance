@@ -1,5 +1,9 @@
 footer {
-    background-color: var(--color-neutral-100);
+    background-color: #ffdf40;
+    background-image: url('../../icons/bubble-sprite.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
     font: var(--type-body-2-default-font);
     letter-spacing: var(--type-body-2-default-letter-spacing);
 }
