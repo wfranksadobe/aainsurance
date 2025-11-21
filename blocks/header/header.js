@@ -249,8 +249,6 @@ export default async function decorate(block) {
 
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
-    let closeTimeout;
-    
     navSections
       .querySelectorAll(':scope .default-content-wrapper > ul > li')
       .forEach((navSection) => {
@@ -263,12 +261,6 @@ export default async function decorate(block) {
           }
         });
         navSection.addEventListener('mouseenter', () => {
-          // Clear any pending close timeout
-          if (closeTimeout) {
-            clearTimeout(closeTimeout);
-            closeTimeout = null;
-          }
-          
           toggleAllNavSections(navSections);
           if (isDesktop.matches) {
             if (!navSection.classList.contains('nav-drop')) {
@@ -279,20 +271,6 @@ export default async function decorate(block) {
             overlay.classList.add('show');
           }
         });
-        
-        // Handle mouseleave on the submenu wrapper to detect leaving the dropdown area
-        const submenuWrapper = navSection.querySelector('.submenu-wrapper');
-        if (submenuWrapper) {
-          submenuWrapper.addEventListener('mouseleave', (e) => {
-            // Check if we're leaving to go back to the parent nav item
-            if (isDesktop.matches && !navSection.contains(e.relatedTarget)) {
-              closeTimeout = setTimeout(() => {
-                navSection.setAttribute('aria-expanded', 'false');
-                overlay.classList.remove('show');
-              }, 100);
-            }
-          });
-        }
       });
     
     // Handle images with links in nav sections
@@ -490,8 +468,8 @@ export default async function decorate(block) {
   navWrapper.append(nav);
   block.append(navWrapper);
 
-  navWrapper.addEventListener('mouseleave', (e) => {
-    if (isDesktop.matches) {
+  navWrapper.addEventListener('mouseout', (e) => {
+    if (isDesktop.matches && !nav.contains(e.relatedTarget)) {
       toggleAllNavSections(navSections);
       overlay.classList.remove('show');
     }
