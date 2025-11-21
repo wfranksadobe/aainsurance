@@ -328,7 +328,6 @@ export default async function decorate(block) {
     panel.classList.toggle('nav-tools-panel--show', show);
   }
 
-
   /** Search */
   const searchFragment = document.createRange().createContextualFragment(`
   <div class="search-wrapper nav-tools-wrapper">
