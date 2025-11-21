@@ -23,7 +23,11 @@ footer .footer .section {
 }
 
 footer .footer a {
-    font-size: 0.7em;
+    font-size: 0.8em;
+}
+
+footer .footer .default-content-wrapper {
+    text-align: center;
 }
 
 .storeview-switcher-button {
