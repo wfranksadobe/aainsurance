@@ -249,6 +249,8 @@ export default async function decorate(block) {
 
   const navSections = nav.querySelector('.nav-sections');
   if (navSections) {
+    let closeTimeout;
+    
     navSections
       .querySelectorAll(':scope .default-content-wrapper > ul > li')
       .forEach((navSection) => {
@@ -261,6 +263,12 @@ export default async function decorate(block) {
           }
         });
         navSection.addEventListener('mouseenter', () => {
+          // Clear any pending close timeout
+          if (closeTimeout) {
+            clearTimeout(closeTimeout);
+            closeTimeout = null;
+          }
+          
           toggleAllNavSections(navSections);
           if (isDesktop.matches) {
             if (!navSection.classList.contains('nav-drop')) {
@@ -271,12 +279,20 @@ export default async function decorate(block) {
             overlay.classList.add('show');
           }
         });
-        navSection.addEventListener('mouseleave', () => {
-          if (isDesktop.matches && navSection.classList.contains('nav-drop')) {
-            navSection.setAttribute('aria-expanded', 'false');
-            overlay.classList.remove('show');
-          }
-        });
+        
+        // Handle mouseleave on the submenu wrapper to detect leaving the dropdown area
+        const submenuWrapper = navSection.querySelector('.submenu-wrapper');
+        if (submenuWrapper) {
+          submenuWrapper.addEventListener('mouseleave', (e) => {
+            // Check if we're leaving to go back to the parent nav item
+            if (isDesktop.matches && !navSection.contains(e.relatedTarget)) {
+              closeTimeout = setTimeout(() => {
+                navSection.setAttribute('aria-expanded', 'false');
+                overlay.classList.remove('show');
+              }, 100);
+            }
+          });
+        }
       });
     
     // Handle images with links in nav sections
