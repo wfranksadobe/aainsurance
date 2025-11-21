@@ -191,7 +191,6 @@ header nav .nav-sections ul > li,
 header nav .nav-sections ul > li > a {
   font: var(--type-body-2-strong-font);
   letter-spacing: var(--type-body-2-strong-letter-spacing);
-  font-weight: bold;
 }
 
 header nav .nav-brand a:hover {
