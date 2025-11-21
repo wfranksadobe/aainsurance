@@ -18,6 +18,10 @@ footer .footer p {
     margin: 0;
 }
 
+footer .footer .section {
+    padding-bottom: 10px;
+}
+
 .storeview-switcher-button {
     background: transparent;
     padding-left: 0;
